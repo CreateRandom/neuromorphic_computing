@@ -9,19 +9,16 @@ simulator.
 
 import os
 import time
-import numpy as np
 
 import keras
 from keras import Input, Model
-from keras.layers import Conv2D, AveragePooling2D, Flatten, Dense, Dropout
-from keras.datasets import mnist
-from keras.utils import np_utils
+from keras.layers import Flatten, Dense, Dropout
 from keras.optimizers import SGD
 from keras.initializers import RandomUniform
 
 from snntoolbox.bin.run import main
 from snntoolbox.utils.utils import import_configparser
-
+from utils.data import load_mnist, save_data_for_toolbox
 
 # WORKING DIRECTORY #
 #####################
@@ -35,28 +32,9 @@ os.makedirs(path_wd)
 # GET DATASET #
 ###############
 
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
-
-# Normalize input so we can train ANN with it.
-# Will be converted back to integers for SNN layer.
-x_train = x_train / 255
-x_test = x_test / 255
-
-# Add a channel dimension.
-axis = 1 if keras.backend.image_data_format() == 'channels_first' else -1
-x_train = np.expand_dims(x_train, axis)
-x_test = np.expand_dims(x_test, axis)
-
-# One-hot encode target vectors.
-y_train = np_utils.to_categorical(y_train, 10)
-y_test = np_utils.to_categorical(y_test, 10)
-
-# Save dataset so SNN toolbox can find it.
-np.savez_compressed(os.path.join(path_wd, 'x_test'), x_test)
-np.savez_compressed(os.path.join(path_wd, 'y_test'), y_test)
-# SNN toolbox will not do any training, but we save a subset of the training
-# set so the toolbox can use it when normalizing the network parameters.
-np.savez_compressed(os.path.join(path_wd, 'x_norm'), x_train[::10])
+(x_train, y_train), (x_test, y_test) = load_mnist()
+# store a part of the train data and the test data in the path for the toolbox to be able to use it
+save_data_for_toolbox(x_train, x_test, y_test, path_wd)
 
 # CREATE ANN #
 ##############
@@ -79,12 +57,12 @@ layer = Dropout(dropout_rate)(layer)
 layer = Dense(units=10, kernel_initializer=uniform_init,
               activation='softmax')(layer)
 
+# create model
 model = Model(input_layer, layer)
 
 model.summary()
-
+# basic training with SGD
 sgd = SGD(learning_rate=0.01, momentum=0.1)
-
 model.compile(sgd, 'categorical_crossentropy', ['accuracy'])
 
 # Train model with backprop.
@@ -92,7 +70,7 @@ model.fit(x_train, y_train, batch_size=64, epochs=1, verbose=2,
           validation_data=(x_test, y_test))
 
 # Store model so SNN Toolbox can find it.
-model_name = 'mnist_cnn'
+model_name = 'mnist_vanilla'
 keras.models.save_model(model, os.path.join(path_wd, model_name + '.h5'))
 
 # SNN TOOLBOX CONFIGURATION #
