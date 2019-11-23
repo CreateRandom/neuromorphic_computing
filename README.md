@@ -26,3 +26,6 @@ A repo for the course Neuromorphic Computing
 #### Unclear
 * What framework did they run this on? Probably not tested on neuromorphic hardware?
 * It reads like all the optimizations are performed on the ANN, but the paper is murky on that
+
+## Collaborators:
+* Taufred
