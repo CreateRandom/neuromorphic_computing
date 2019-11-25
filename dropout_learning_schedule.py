@@ -1,4 +1,5 @@
 import keras as K
+from keras.layers import Dropout
 
 class DropoutScheduler(K.callbacks.Callback):
     """Learning rate scheduler.
@@ -8,20 +9,19 @@ class DropoutScheduler(K.callbacks.Callback):
         verbose: int. 0: quiet, 1: update messages.
     """
 
-    def __init__(self, final_rate, extra_epochs, verbose=0):
+    def __init__(self, final_rate, extra_epochs, start_epochs=50, verbose=0):
         super(DropoutScheduler, self).__init__()
         self.final_rate = final_rate
         self.verbose = verbose
-        self.extra_epochs = extra_epochs    
+        self.extra_epochs = extra_epochs
+        self.start_epochs = start_epochs
 
     def on_epoch_end(self, epoch, logs=None):
-        step = 0
-        if epoch < 50: step = 0
-        else: step = extra_epochs - 50
-        rate = final_rate/extra_epochs * step
-        for layer in self.model.layers[]:
-            if if isinstance(layer, Dropout):
+        if epoch < self.start_epochs: step = 0
+        else: step = epoch - self.start_epochs
+        rate = self.final_rate/self.extra_epochs * step
+        print(f'Setting rate to {rate}')
+        for layer in self.model.layers:
+            if isinstance(layer, Dropout):
+                print(f'Rate was {layer.rate}')
                 layer.rate = rate
-
-
-

@@ -18,6 +18,8 @@ from keras.initializers import RandomUniform
 
 from snntoolbox.bin.run import main
 from snntoolbox.utils.utils import import_configparser
+
+from dropout_learning_schedule import DropoutScheduler
 from utils.data import load_mnist, save_data_for_toolbox
 
 # WORKING DIRECTORY #
@@ -39,13 +41,13 @@ save_data_for_toolbox(x_train, x_test, y_test, path_wd)
 # CREATE ANN #
 ##############
 
-# Create the ANN in Keras and train for 
+# Create the ANN in Keras and train
 
 input_shape = x_train.shape[1:]
 input_layer = Input(input_shape)
 
 uniform_init = RandomUniform(minval=-0.1, maxval=0.1)
-dropout_rate = 0.5
+dropout_rate = 0.0
 # flatten to 784 
 
 layer = Flatten()(input_layer)
@@ -65,9 +67,10 @@ model.summary()
 sgd = SGD(learning_rate=0.01, momentum=0.1)
 model.compile(sgd, 'categorical_crossentropy', ['accuracy'])
 
+scheduler = DropoutScheduler(final_rate=0.9,extra_epochs=10, start_epochs=0)
 # Train model with backprop.
-model.fit(x_train, y_train, batch_size=64, epochs=1, verbose=2,
-          validation_data=(x_test, y_test))
+model.fit(x_train, y_train, batch_size=64, epochs=10, verbose=2,
+          validation_data=(x_test, y_test), callbacks=[scheduler])
 
 # Store model so SNN Toolbox can find it.
 model_name = 'mnist_vanilla'
@@ -100,13 +103,15 @@ config['simulation'] = {
 }
 
 config['output'] = {
-    'plot_vars': {                  # Various plots (slows down simulation).
-        'spiketrains',              # Leave section empty to turn off plots.
-        'spikerates',
-        'activations',
-        'correlation',
-        'v_mem',
-        'error_t'}
+    # log all possible variables to the disk
+    'log_vars': {'all'},
+    # 'plot_vars': {                  # Various plots (slows down simulation).
+    #     'spiketrains',              # Leave section empty to turn off plots.
+    #     'spikerates',
+    #     'activations',
+    #     'correlation',
+    #     'v_mem',
+    #     'error_t'}
 }
 
 # Store config file.
