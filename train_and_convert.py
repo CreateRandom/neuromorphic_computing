@@ -19,6 +19,7 @@ from keras.initializers import RandomUniform
 from snntoolbox.bin.run import main
 from snntoolbox.utils.utils import import_configparser
 
+from custom_regularizers import ModifiedL2Cost
 from dropout_learning_schedule import DropoutScheduler
 from utils.data import load_mnist, save_data_for_toolbox
 
@@ -48,15 +49,17 @@ input_layer = Input(input_shape)
 
 uniform_init = RandomUniform(minval=-0.1, maxval=0.1)
 dropout_rate = 0.0
-# flatten to 784 
+# flatten to 784
+
 
 layer = Flatten()(input_layer)
 layer = Dropout(dropout_rate)(layer)
-layer = Dense(units=1200, kernel_initializer=uniform_init,activation='relu')(layer)
+layer = Dense(units=1200, kernel_initializer=uniform_init, activity_regularizer=ModifiedL2Cost(), activation='relu')(layer)
 layer = Dropout(dropout_rate)(layer)
-layer = Dense(units=1200, kernel_initializer=uniform_init, activation='relu')(layer)
+layer = Dense(units=1200, kernel_initializer=uniform_init,
+              activity_regularizer=ModifiedL2Cost(), activation='relu')(layer)
 layer = Dropout(dropout_rate)(layer)
-layer = Dense(units=10, kernel_initializer=uniform_init,
+layer = Dense(units=10, kernel_initializer=uniform_init, activity_regularizer=ModifiedL2Cost(),
               activation='softmax')(layer)
 
 # create model
@@ -69,7 +72,7 @@ model.compile(sgd, 'categorical_crossentropy', ['accuracy'])
 
 scheduler = DropoutScheduler(final_rate=0.9,extra_epochs=10, start_epochs=0)
 # Train model with backprop.
-model.fit(x_train, y_train, batch_size=64, epochs=10, verbose=2,
+model.fit(x_train, y_train, batch_size=64, epochs=1, verbose=2,
           validation_data=(x_test, y_test), callbacks=[scheduler])
 
 # Store model so SNN Toolbox can find it.
