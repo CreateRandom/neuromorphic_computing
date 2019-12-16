@@ -19,7 +19,7 @@ from keras.initializers import RandomUniform
 from snntoolbox.bin.run import main
 from snntoolbox.utils.utils import import_configparser
 
-from custom_regularizers import ModifiedL2Cost
+from custom_regularizers import ModifiedL2Cost, ModifiedL2Callback
 from dropout_learning_schedule import DropoutScheduler
 from utils.data import load_mnist, save_data_for_toolbox
 
@@ -54,14 +54,16 @@ dropout_rate = 0.0
 
 layer = Flatten()(input_layer)
 layer = Dropout(dropout_rate)(layer)
+#layer = Dense(units=1200, kernel_initializer=uniform_init, activation='relu')(layer)
 layer = Dense(units=1200, kernel_initializer=uniform_init, activity_regularizer=ModifiedL2Cost(), activation='relu')(layer)
 layer = Dropout(dropout_rate)(layer)
-layer = Dense(units=1200, kernel_initializer=uniform_init,
-              activity_regularizer=ModifiedL2Cost(), activation='relu')(layer)
+layer = Dense(units=1200, kernel_initializer=uniform_init, activation='relu')(layer)
+#layer = Dense(units=1200, kernel_initializer=uniform_init, activity_regularizer=ModifiedL2Cost(), activation='relu')(layer)
 layer = Dropout(dropout_rate)(layer)
-layer = Dense(units=10, kernel_initializer=uniform_init, activity_regularizer=ModifiedL2Cost(),
+#layer = Dense(units=10, kernel_initializer=uniform_init, activity_regularizer=ModifiedL2Cost(),
+ #             activation='softmax')(layer)
+layer = Dense(units=10, kernel_initializer=uniform_init,
               activation='softmax')(layer)
-
 # create model
 model = Model(input_layer, layer)
 
@@ -72,8 +74,14 @@ model.compile(sgd, 'categorical_crossentropy', ['accuracy'])
 
 scheduler = DropoutScheduler(final_rate=0.9,extra_epochs=10, start_epochs=0)
 # Train model with backprop.
-model.fit(x_train, y_train, batch_size=64, epochs=1, verbose=2,
-          validation_data=(x_test, y_test), callbacks=[scheduler])
+model.fit(x_train, y_train, batch_size=64, epochs=22, verbose=2,
+          validation_data=(x_test, y_test), callbacks=[ModifiedL2Callback()])
+
+# remove activity_regularizers before serializing
+for layer in model.layers:
+    if hasattr(layer, 'activity_regularizer'):
+        if isinstance(layer.activity_regularizer, ModifiedL2Cost):
+            layer.activity_regularizer = None
 
 # Store model so SNN Toolbox can find it.
 model_name = 'mnist_vanilla'

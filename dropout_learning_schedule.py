@@ -1,7 +1,7 @@
-import keras as K
+from keras.callbacks import Callback
 from keras.layers import Dropout
 
-class DropoutScheduler(K.callbacks.Callback):
+class DropoutScheduler(Callback):
     """Learning rate scheduler.
     # Arguments
         schedule: a function that takes an epoch index as input
