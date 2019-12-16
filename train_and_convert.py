@@ -44,48 +44,68 @@ save_data_for_toolbox(x_train, x_test, y_test, path_wd)
 
 # Create the ANN in Keras and train
 
-input_shape = x_train.shape[1:]
-input_layer = Input(input_shape)
+def build_model(dropout_rate=0.5, activity_regularizer=None):
 
-uniform_init = RandomUniform(minval=-0.1, maxval=0.1)
-dropout_rate = 0.0
-# flatten to 784
+    input_shape = x_train.shape[1:]
+    input_layer = Input(input_shape)
+
+    uniform_init = RandomUniform(minval=-0.1, maxval=0.1)
+
+    # flatten to 784
+    layer = Flatten()(input_layer)
+    layer = Dropout(dropout_rate)(layer)
+    layer = Dense(units=1200, kernel_initializer=uniform_init, activity_regularizer=activity_regularizer, activation='relu')(layer)
+    layer = Dropout(dropout_rate)(layer)
+    layer = Dense(units=1200, kernel_initializer=uniform_init, activity_regularizer=activity_regularizer, activation='relu')(layer)
+    layer = Dropout(dropout_rate)(layer)
+    layer = Dense(units=10, kernel_initializer=uniform_init, activity_regularizer=activity_regularizer,
+                  activation='softmax')(layer)
+    # create model
+    model = Model(input_layer, layer)
+
+    model.summary()
+    # basic training with SGD
+    sgd = SGD(learning_rate=0.01, momentum=0.1)
+    model.compile(sgd, 'categorical_crossentropy', ['accuracy'])
+
+    return model
 
 
-layer = Flatten()(input_layer)
-layer = Dropout(dropout_rate)(layer)
-#layer = Dense(units=1200, kernel_initializer=uniform_init, activation='relu')(layer)
-layer = Dense(units=1200, kernel_initializer=uniform_init, activity_regularizer=ModifiedL2Cost(), activation='relu')(layer)
-layer = Dropout(dropout_rate)(layer)
-layer = Dense(units=1200, kernel_initializer=uniform_init, activation='relu')(layer)
-#layer = Dense(units=1200, kernel_initializer=uniform_init, activity_regularizer=ModifiedL2Cost(), activation='relu')(layer)
-layer = Dropout(dropout_rate)(layer)
-#layer = Dense(units=10, kernel_initializer=uniform_init, activity_regularizer=ModifiedL2Cost(),
- #             activation='softmax')(layer)
-layer = Dense(units=10, kernel_initializer=uniform_init,
-              activation='softmax')(layer)
-# create model
-model = Model(input_layer, layer)
+def train_model(model, epochs, callbacks=None):
+    # Train model with backprop.
+    model.fit(x_train, y_train, batch_size=64, epochs=epochs, verbose=2,
+              validation_data=(x_test, y_test), callbacks=callbacks)
 
-model.summary()
-# basic training with SGD
-sgd = SGD(learning_rate=0.01, momentum=0.1)
-model.compile(sgd, 'categorical_crossentropy', ['accuracy'])
+    # remove activity_regularizers before serializing
+    for layer in model.layers:
+        if hasattr(layer, 'activity_regularizer'):
+            if isinstance(layer.activity_regularizer, ModifiedL2Cost):
+                layer.activity_regularizer = None
 
-scheduler = DropoutScheduler(final_rate=0.9,extra_epochs=10, start_epochs=0)
-# Train model with backprop.
-model.fit(x_train, y_train, batch_size=64, epochs=22, verbose=2,
-          validation_data=(x_test, y_test), callbacks=[ModifiedL2Callback()])
+    return model
 
-# remove activity_regularizers before serializing
-for layer in model.layers:
-    if hasattr(layer, 'activity_regularizer'):
-        if isinstance(layer.activity_regularizer, ModifiedL2Cost):
-            layer.activity_regularizer = None
+def save_model(model, model_name):
+    model_path = os.path.join(path_wd, model_name + '.h5')
+    keras.models.save_model(model, model_path)
+    return model_path
+
+
+def full_pipeline(config=None):
+    activity_regularizer = ModifiedL2Cost()
+    model = build_model(dropout_rate=0.0)
+    # scheduler = DropoutScheduler(final_rate=0.9,extra_epochs=10, start_epochs=0)
+    train_model(model, epochs=2)
+    model_name = config['model_name']
+    model_path = save_model(model, model_name)
+
+    return model_path
+
+model_name = 'mnist_vanilla'
+config = {'model_name': model_name}
+full_pipeline(config)
+
 
 # Store model so SNN Toolbox can find it.
-model_name = 'mnist_vanilla'
-keras.models.save_model(model, os.path.join(path_wd, model_name + '.h5'))
 
 # SNN TOOLBOX CONFIGURATION #
 #############################
