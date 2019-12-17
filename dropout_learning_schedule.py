@@ -20,8 +20,8 @@ class DropoutScheduler(Callback):
         if epoch < self.start_epochs: step = 0
         else: step = epoch - self.start_epochs
         rate = self.final_rate/self.extra_epochs * step
-        print(f'Setting rate to {rate}')
+        print('Setting rate to {}'.format(rate))
         for layer in self.model.layers:
             if isinstance(layer, Dropout):
-                print(f'Rate was {layer.rate}')
+                print('Rate was {}'.format(layer.rate))
                 layer.rate = rate

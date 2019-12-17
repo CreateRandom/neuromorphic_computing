@@ -16,10 +16,9 @@ class ModifiedL2Callback(Callback):
                 if hasattr(layer, 'activity_regularizer'):
                     if isinstance(layer.activity_regularizer, ModifiedL2Cost):
                         c_act = layer.activity_regularizer.c_act
-                        print(f'Activation cost weight was {c_act}')
+                        print('Activation cost weight was {}'.format(c_act))
                         K.set_value(c_act,self.c_act_target)
-                        print(f'Activation cost set to {c_act}')
-
+                        print('Activation cost set to {}'.format(c_act))
 
 class ModifiedL2Cost(Regularizer):
     """Regularizer for L1 and L2 regularization.
