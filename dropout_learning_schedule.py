@@ -9,9 +9,9 @@ class DropoutScheduler(Callback):
         verbose: int. 0: quiet, 1: update messages.
     """
 
-    def __init__(self, final_rate, extra_epochs, start_epochs=50, verbose=0):
+    def __init__(self, p_final, extra_epochs, start_epochs=50, verbose=0):
         super(DropoutScheduler, self).__init__()
-        self.final_rate = final_rate
+        self.p_final = p_final
         self.verbose = verbose
         self.extra_epochs = extra_epochs
         self.start_epochs = start_epochs
@@ -19,7 +19,7 @@ class DropoutScheduler(Callback):
     def on_epoch_end(self, epoch, logs=None):
         if epoch < self.start_epochs: step = 0
         else: step = epoch - self.start_epochs
-        rate = self.final_rate/self.extra_epochs * step
+        rate = self.p_final / self.extra_epochs * step
         print('Setting rate to {}'.format(rate))
         for layer in self.model.layers:
             if isinstance(layer, Dropout):

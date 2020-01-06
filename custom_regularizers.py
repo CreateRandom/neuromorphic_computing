@@ -11,7 +11,8 @@ class ModifiedL2Callback(Callback):
         self.start_epochs = start_epochs
 
     def on_epoch_end(self, epoch, logs=None):
-        if epoch == self.start_epochs:
+        # counting starts at 0 here, so e.g. if you want to do 2, do 0 and 1, callback thereafter
+        if epoch == self.start_epochs -1:
             for layer in self.model.layers:
                 if hasattr(layer, 'activity_regularizer'):
                     if isinstance(layer.activity_regularizer, ModifiedL2Cost):
