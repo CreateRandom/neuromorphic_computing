@@ -1,6 +1,9 @@
 # neuromorphic_computing
 A repo for the course Neuromorphic Computing
 
+## Paper
+The link for the overleaf document is [here](https://www.overleaf.com/3335321595kpjcffpqnpvt)
+
 ## Paper shortlist
 * [Constraint satisfaction problem paper](https://www.frontiersin.org/articles/10.3389/fnins.2017.00714/full): Sudoku, Map Coloring, Spin? Problem: @Larsie7205
 * [ANN to SNN conversion](https://dl.acm.org/citation.cfm?id=2851613.2851724): Train ANN, convert, then 'optimize': @CreateRandom
