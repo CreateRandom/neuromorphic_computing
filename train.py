@@ -19,7 +19,7 @@ from keras.initializers import RandomUniform
 from snntoolbox.bin.run import main
 
 from convert import convert_model
-from custom_loss import Sparse_Coding_Loss, CustomLoss
+from custom_loss import SparseCodingCallback, SparseCodingRegularizer
 from custom_regularizers import ModifiedL2Cost, ModifiedL2Callback
 from dropout_learning_schedule import DropoutScheduler
 from utils.data import load_mnist, save_data_for_toolbox
@@ -104,18 +104,17 @@ def full_pipeline(config=None):
             callbacks.append(callback)
             # add the pre-training epochs to the total
             total_epochs +=start_epochs
-        # TODO please implement
         elif config['activity_regularizer'] is 'sparse':
             start_epochs = config['regularizer_params']['start_epochs']
-            activity_regularizer = CustomLoss(s_cost=config['regularizer_params']['s_cost'],
-                                              s_target=config['regularizer_params']['s_target'])
-            callback = Sparse_Coding_Loss(start_epochs=start_epochs, extra_epochs=config['extra_epochs'])
+            activity_regularizer = SparseCodingRegularizer(s_cost=config['regularizer_params']['s_cost'],
+                                                           s_target=0)
+            callback = SparseCodingCallback(s_cost_target=config['regularizer_params']['s_target'],
+                                            start_epochs=start_epochs)
             callbacks.append(callback)
             total_epochs +=start_epochs
-            raise NotImplementedError('Activity regularizer sparse is not implemented.')
         else:
             raise ValueError('Unknown activity regularizer {}'.format(config['activity_regularizer']))
-    #
+
     dropout_rate = config.get('dropout', 0.5)
     hidden_units = config.get('hidden_units',1200)
     model = build_model(hidden_units= hidden_units,
