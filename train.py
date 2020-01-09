@@ -161,7 +161,7 @@ for c_act in [0.1, 0.01, 0.001, 0.0001]:
 for p_final in [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
     for e2 in [20, 50, 80]:
         config = {'model_name': 'mnist_dropout_scheduler_p_final_' + str(p_final) + '_e2_' + str(e2),
-                                   'dropout_scheduler': {'p_final': p_final, 'extra_epochs': e2}}
+                                   'dropout_scheduler': {'p_final': p_final, 'extra_epochs': e2}, 'epochs' : 0}
         full_pipeline(config)
 
 #config = {'model_name': model_name, 'activity_regularizer': 'l2',
