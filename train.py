@@ -103,7 +103,7 @@ def full_pipeline(config=None):
                                           start_epochs=start_epochs)
             callbacks.append(callback)
             # add the pre-training epochs to the total
-            total_epochs +=start_epochs
+            total_epochs += start_epochs
         elif config['activity_regularizer'] is 'sparse':
             start_epochs = config['regularizer_params']['start_epochs']
             activity_regularizer = SparseCodingRegularizer(s_cost=config['regularizer_params']['s_cost'],
@@ -111,14 +111,14 @@ def full_pipeline(config=None):
             callback = SparseCodingCallback(s_cost_target=config['regularizer_params']['s_target'],
                                             start_epochs=start_epochs)
             callbacks.append(callback)
-            total_epochs +=start_epochs
+            total_epochs += start_epochs
         else:
             raise ValueError('Unknown activity regularizer {}'.format(config['activity_regularizer']))
 
     dropout_rate = config.get('dropout', 0.5)
-    hidden_units = config.get('hidden_units',1200)
-    model = build_model(hidden_units= hidden_units,
-                        dropout_rate=dropout_rate, activity_regularizer=activity_regularizer)
+    hidden_units = config.get('hidden_units', 1200)
+    model = build_model(hidden_units = hidden_units,
+                        dropout_rate = dropout_rate, activity_regularizer=activity_regularizer)
 
     if 'dropout_scheduler' in config:
         scheduler_config = config['dropout_scheduler']
@@ -132,35 +132,43 @@ def full_pipeline(config=None):
 
     return model_path
 
-model_name = 'mnist_vanilla'
-config = {'model_name': model_name, 'activity_regularizer': 'l2',
-          'regularizer_params': {'c_min': 0.5, 'c_act': 0.1, 'start_epochs':2}, 'epochs': 20, 'hidden_units' :10}
+# Dropout
+for dropout in [0.0, 0.4, 0.5, 0.6, 0.7, 0.8]:
+    config = {'model_name': 'mnist_dropout_' + str(dropout), 'dropout': dropout, 'epochs': 50}
+    full_pipeline(config)
 
-def format_dict_to_str(dict):
-    string = ''
-    for k, v in dict.items():
-        string = string + '_' + str(k) + '_' + str(v)
-    return string
+# Sparse coding
+for s_cost in [0.1, 0.01, 0.001, 0.0001]:
+    for s_target in [0.2, 0.05, 0.01]:
+        # Unsure in paper, it says [5, 50, 50]
+        for sec_epochs in [5, 20, 50]:
+            config = {'model_name': 'mnist_sparse_s_cost_' + str(s_cost) + '_s_target_' + str(s_target) + '_sec_epochs_' + str(sec_epochs),
+                      'activity_regularizer': 'sparse', 'regularizer_params': {'s_cost': s_cost, 's_target': s_target, 'start_epochs': 20},
+                      'epochs': sec_epochs}
+            full_pipeline(config)
 
-def get_condition_name(config_dict):
-    if 'activity_regularizer' in config_dict:
-        name = '{}_{}'.format(config['activity_regularizer'], format_dict_to_str(config['regularizer_params']))
+# L2 Cost
+for c_act in [0.1, 0.01, 0.001, 0.0001]:
+    for c_min in [0.5, 1.0, 1.5, 2.0]:
+        # after 2 epochs of pre-training
+        for epochs in [5, 20, 50]:
+            config = {'model_name': 'mnist_l2_c_min_' + str(c_min) + '_c_act_' + str(c_act) + '_epochs_' + str(epochs), 'activity_regularizer': 'l2',
+                      'regularizer_params': {'c_min': c_min, 'c_act': c_act, 'start_epochs': 2}, 'epochs': epochs}
+            full_pipeline(config)
 
-        print(name)
+# Dropout scheduler
+for p_final in [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+    for e2 in [20, 50, 80]:
+        config = {'model_name': 'mnist_dropout_scheduler_p_final_' + str(p_final) + '_e2_' + str(e2),
+                                   'dropout_scheduler': {'p_final': p_final, 'extra_epochs': e2}}
+        full_pipeline(config)
 
-get_condition_name(config)
-
-normal_dropout_config = {'model_name': model_name, 'dropout' : 0.8, 'epochs': 20, 'hidden_units' : 10}
-
-dropout_schedule_config = {'model_name': model_name, 'dropout' : 0.8, 'epochs': 20, 'dropout_scheduler' : {'p_final' : 0.4, 'extra_epochs': 20},
-                           'hidden_units' : 10}
-
-custom_loss_config = {'model_name': model_name, 'activity_regularizer': 'sparse',
-                      'regularizer_params': {'s_cost': .1, 's_target': .2, 'start_epochs': 20},
-                      'extra_epochs': 5, 'epochs': 20, 'hidden_units' : 10}
-
-full_pipeline(dropout_schedule_config)
-
-toolbox_config_path = convert_model(path_wd, model_name)
-
-main(toolbox_config_path)
+#config = {'model_name': model_name, 'activity_regularizer': 'l2',
+#          'regularizer_params': {'c_min': 0.5, 'c_act': 0.1, 'start_epochs':2}, 'epochs': 20, 'hidden_units' :10}
+#
+#
+#normal_dropout_config = {'model_name': model_name, 'dropout' : 0.8, 'epochs': 20, 'hidden_units' : 10}
+#
+#dropout_schedule_config = {'model_name': model_name, 'dropout' : 0.8, 'epochs': 20, 'dropout_scheduler' : {'p_final' : 0.4, 'extra_epochs': 20},
+#                           'hidden_units' : 10}
+#
