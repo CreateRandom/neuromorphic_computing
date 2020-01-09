@@ -23,7 +23,7 @@ from custom_loss import SparseCodingCallback, SparseCodingRegularizer
 from custom_regularizers import ModifiedL2Cost, ModifiedL2Callback
 from dropout_learning_schedule import DropoutScheduler
 from utils.data import load_mnist, save_data_for_toolbox
-
+from utils.saving import save_model_config
 # WORKING DIRECTORY #
 #####################
 
@@ -91,6 +91,7 @@ def save_model(model, model_name):
     return model_path
 
 def full_pipeline(config=None):
+    save_model_config(config, path_wd)
     total_epochs = config['epochs']
     activity_regularizer = None
     callbacks = []
@@ -134,7 +135,7 @@ def full_pipeline(config=None):
 
 # Dropout
 for dropout in [0.0, 0.4, 0.5, 0.6, 0.7, 0.8]:
-    config = {'model_name': 'mnist_dropout_' + str(dropout), 'dropout': dropout, 'epochs': 50}
+    config = {'model_name': 'mnist_dropout_' + str(dropout), 'dropout': dropout, 'epochs': 1}
     full_pipeline(config)
 
 # Sparse coding
