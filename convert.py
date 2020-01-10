@@ -4,6 +4,7 @@ import shutil
 from snntoolbox.bin.run import main
 from snntoolbox.utils.utils import import_configparser
 import datetime
+import socket
 
 loihi_config_dict = {
     # nWB has a maximum of 8
@@ -13,8 +14,7 @@ loihi_config_dict = {
     # biasExp must be 6 anyway
     'compartment_kwargs': {'vThMant': 2 ** 8, 'biasExp': 6},
     # no clue how to set this
-    'desired_threshold_to_input_ratio': 1
-
+    'desired_threshold_to_input_ratio': 10
 }
 
 def generate_snn_config(path_wd, model_name, simulator='INI'):
@@ -40,7 +40,7 @@ def generate_snn_config(path_wd, model_name, simulator='INI'):
 
     config['simulation'] = {
         'simulator': simulator,            # Chooses execution backend of SNN toolbox.
-        'duration': 50,                 # Number of time steps to run each sample.
+        'duration': 2000,                 # Number of time steps to run each sample.
         'num_to_test': 5,               # How many test samples to run.
         'batch_size': 1,                # Batch size for simulation.
         'keras_backend': 'tensorflow'
@@ -68,11 +68,11 @@ def generate_snn_config(path_wd, model_name, simulator='INI'):
 
     return config_filepath
 
-def run_all_on_path(in_path):
+def run_all_on_path(in_path, simulator='INI'):
     assert os.path.exists(os.path.join(in_path, 'x_norm.npz')), 'Could not find x_norm.npz on path'
     candidates = []
     for filename in os.listdir(in_path):
-        if filename.endswith(".h5"):
+        if filename.endswith(".h5") and 'parsed' not in filename:
             candidates.append(filename)
 
     print('Found a total of {} candidates.'.format(len(candidates)))
@@ -81,7 +81,7 @@ def run_all_on_path(in_path):
         # strip the extension
         candidate = candidate.split('.h5')[0]
         print('Running candidate {}'.format(candidate))
-        config = generate_snn_config(in_path,candidate, simulator='loihi')
+        config = generate_snn_config(in_path,candidate, simulator=simulator)
         start_time = time.time()
         main(config)
         end_time = time.time()
@@ -97,5 +97,12 @@ def run_all_on_path(in_path):
         shutil.move(os.path.join(in_path,'log'), os.path.join(in_path,candidate))
 
 if __name__ == '__main__':
-    nrc_path = '/homes/klux/models'
-    run_all_on_path(nrc_path)
+    on_loihi = socket.gethostname() == 'ncl-mki96'
+    if on_loihi:
+        print('Running on loihi')
+        model_path = '/homes/klux/models'
+        run_all_on_path(model_path, 'loihi')
+    else:
+        print('Running on other machine, using INI')
+        model_path = 'models'
+        run_all_on_path(model_path, 'INI')
