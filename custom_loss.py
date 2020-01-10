@@ -7,10 +7,8 @@ Created on Tue Dec 10 09:45:29 2019
 
 from keras import backend as K
 from keras.callbacks import Callback
-import keras.losses as Loss
+import tensorflow as tf
 from keras.regularizers import Regularizer
-import numpy as np
-from numpy import linalg as LA
 
 class SparseCodingCallback(Callback):
     
@@ -43,7 +41,9 @@ class SparseCodingRegularizer(Regularizer):
         self.s_target = K.variable(K.cast_to_floatx(s_target))
 
     def __call__(self, y):
-        l_sparse = self.s_cost * K.l2_normalize(y - self.s_target * K.ones(y.shape[1]))
+        target_vector = self.s_target * K.ones_like(y)
+        diff = tf.linalg.norm(target_vector)
+        l_sparse = self.s_cost * diff
         return l_sparse
 
     def get_config(self):
