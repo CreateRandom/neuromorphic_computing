@@ -68,7 +68,8 @@ def generate_snn_config(path_wd, model_name, simulator='INI'):
     if simulator is 'loihi':
         config['loihi'] = loihi_config_dict
         # loihi does not support batching
-        config['simulation']['batch_size'] = 1
+        config.set('simulation', 'batch_size', '1')
+   #     config['simulation']['batch_size'] = 1
 
 
     # Store config file.
