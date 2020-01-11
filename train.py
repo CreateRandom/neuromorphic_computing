@@ -16,9 +16,6 @@ from keras.layers import Flatten, Dense, Dropout
 from keras.optimizers import SGD
 from keras.initializers import RandomUniform
 
-from snntoolbox.bin.run import main
-
-from convert import convert_model
 from custom_loss import SparseCodingCallback, SparseCodingRegularizer
 from custom_regularizers import ModifiedL2Cost, ModifiedL2Callback
 from dropout_learning_schedule import DropoutScheduler
