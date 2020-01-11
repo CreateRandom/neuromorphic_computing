@@ -79,6 +79,8 @@ def train_model(model, epochs, callbacks=None):
         if hasattr(layer, 'activity_regularizer'):
             if isinstance(layer.activity_regularizer, ModifiedL2Cost):
                 layer.activity_regularizer = None
+            elif isinstance(layer.activity_regularizer, SparseCodingRegularizer):
+                layer.activity_regularizer = None
 
     return model
 
