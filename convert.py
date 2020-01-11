@@ -11,10 +11,17 @@ loihi_config_dict = {
     # weightExponent must be 0 anyway
     'connection_kwargs': {'numWeightBits': 8, 'weightExponent': 0},
     # vThMant: no idea how to set this, max is 2 ** 17 - 1
+    # the tutorial code on NRC uses various values between 10 and 10000,
+    # but there is no clear explanation when which is appropriate
+    # set to 1000 as this seems to be used frequently
+
     # biasExp must be 6 anyway
-    'compartment_kwargs': {'vThMant': 2 ** 8, 'biasExp': 6},
-    # no clue how to set this
-    'desired_threshold_to_input_ratio': 10
+    'compartment_kwargs': {'vThMant': 1000, 'biasExp': 6},
+
+    # no clue how to set this,
+    # it's related to the weight normalization within the toolbox
+    # thus not documented on NRC --> might have to try different values here
+    'desired_threshold_to_input_ratio': 1
 }
 
 def generate_snn_config(path_wd, model_name, simulator='INI'):
@@ -41,8 +48,8 @@ def generate_snn_config(path_wd, model_name, simulator='INI'):
     config['simulation'] = {
         'simulator': simulator,            # Chooses execution backend of SNN toolbox.
         'duration': 2000,                 # Number of time steps to run each sample.
-        'num_to_test': 5,               # How many test samples to run.
-        'batch_size': 1,                # Batch size for simulation.
+        'num_to_test': 10000,               # How many test samples to run.
+        'batch_size': 200,                # Batch size for simulation.
         'keras_backend': 'tensorflow'
     }
 
@@ -60,6 +67,9 @@ def generate_snn_config(path_wd, model_name, simulator='INI'):
 
     if simulator is 'loihi':
         config['loihi'] = loihi_config_dict
+        # loihi does not support batching
+        config['simulation']['batch_size'] = 1
+
 
     # Store config file.
     config_filepath = os.path.join(path_wd, model_name) + '.config'
