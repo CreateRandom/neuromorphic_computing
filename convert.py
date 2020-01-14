@@ -5,6 +5,7 @@ from snntoolbox.bin.run import main
 from snntoolbox.utils.utils import import_configparser
 import datetime
 import socket
+import argparse
 
 loihi_config_dict = {
     # nWB has a maximum of 8
@@ -109,12 +110,24 @@ def run_all_on_path(in_path, simulator='INI'):
         shutil.move(os.path.join(in_path,'log'), os.path.join(in_path,candidate))
 
 if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('model_path', type=str,
+                        help='the path with the models to run', default=None)
+
+    args = parser.parse_args()
+
     on_loihi = socket.gethostname() == 'ncl-mki96'
+    model_path = args.model_path
     if on_loihi:
         print('Running on loihi')
-        model_path = '/homes/klux/models_new'
+        if args.model_path is None:
+            model_path = '/homes/klux/models_new'
+        print('Running all models on: {}'.format(model_path))
         run_all_on_path(model_path, 'loihi')
     else:
         print('Running on other machine, using INI')
-        model_path = 'models'
+        if args.model_path is None:
+            model_path = 'models_new'
+        print('Running all models on: {}'.format(model_path))
         run_all_on_path(model_path, 'INI')
