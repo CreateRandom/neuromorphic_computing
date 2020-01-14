@@ -1,2 +1,2 @@
-git+https://github.com/Taufred/snn_toolbox.git
+git+https://github.com/CreateRandom/snn_toolbox.git
 
