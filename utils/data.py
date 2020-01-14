@@ -4,8 +4,12 @@ import keras
 import numpy as np
 from keras.datasets import mnist
 from keras.utils import np_utils
+from sklearn import model_selection
 
-def save_data_for_toolbox(x_train, x_test, y_test, path_wd):
+
+def save_data_for_toolbox(x_train, x_test, y_test, path_wd, test_sample=None):
+    if test_sample is not None:
+        _, x_test, _, y_test = model_selection.train_test_split(x_test, y_test, test_size=test_sample, random_state=42)
     # Save dataset so SNN toolbox can find it.
     np.savez_compressed(os.path.join(path_wd, 'x_test'), x_test)
     np.savez_compressed(os.path.join(path_wd, 'y_test'), y_test)

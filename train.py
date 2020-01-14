@@ -71,7 +71,7 @@ def build_model(hidden_units=1200, dropout_rate=0.5, activity_regularizer=None):
 
 def train_model(model, epochs, callbacks=None):
     # Train model with backprop.
-    model.fit(x_train, y_train, batch_size=64, epochs=epochs, verbose=2,
+    model.fit(x_train, y_train, batch_size=512, epochs=epochs, verbose=2,
               validation_data=(x_test, y_test), callbacks=callbacks)
 
     # remove activity_regularizers before serializing
@@ -134,34 +134,37 @@ def full_pipeline(config=None):
 
 # Dropout
 for dropout in [0.0, 0.4, 0.5, 0.6, 0.7, 0.8]:
-    config = {'model_name': 'mnist_dropout_' + str(dropout), 'dropout': dropout, 'epochs': 1}
+    config = {'model_name': 'mnist_dropout_' + str(dropout), 'dropout': dropout, 'epochs': 1, 'hidden_units': 10}
     full_pipeline(config)
 
-# Sparse coding
-for s_cost in [0.1, 0.01, 0.001, 0.0001]:
-    for s_target in [0.2, 0.05, 0.01]:
-        # Unsure in paper, it says [5, 50, 50]
-        for sec_epochs in [5, 20, 50]:
-            config = {'model_name': 'mnist_sparse_s_cost_' + str(s_cost) + '_s_target_' + str(s_target) + '_sec_epochs_' + str(sec_epochs),
-                      'activity_regularizer': 'sparse', 'regularizer_params': {'s_cost': s_cost, 's_target': s_target, 'start_epochs': 20},
-                      'epochs': sec_epochs}
-            full_pipeline(config)
+#path_train = generate_snn_config(path_wd, model_name)
+#main(path_train)
 
-# L2 Cost
-for c_act in [0.1, 0.01, 0.001, 0.0001]:
-    for c_min in [0.5, 1.0, 1.5, 2.0]:
-        # after 2 epochs of pre-training
-        for epochs in [5, 20, 50]:
-            config = {'model_name': 'mnist_l2_c_min_' + str(c_min) + '_c_act_' + str(c_act) + '_epochs_' + str(epochs), 'activity_regularizer': 'l2',
-                      'regularizer_params': {'c_min': c_min, 'c_act': c_act, 'start_epochs': 2}, 'epochs': epochs}
-            full_pipeline(config)
-
-# Dropout scheduler
-for p_final in [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
-    for e2 in [20, 50, 80]:
-        config = {'model_name': 'mnist_dropout_scheduler_p_final_' + str(p_final) + '_e2_' + str(e2),
-                                   'dropout_scheduler': {'p_final': p_final, 'extra_epochs': e2}, 'epochs' : 0}
-        full_pipeline(config)
+# # Sparse coding
+# for s_cost in [0.1, 0.01, 0.001, 0.0001]:
+#     for s_target in [0.2, 0.05, 0.01]:
+#         # Unsure in paper, it says [5, 50, 50]
+#         for sec_epochs in [5, 20, 50]:
+#             config = {'model_name': 'mnist_sparse_s_cost_' + str(s_cost) + '_s_target_' + str(s_target) + '_sec_epochs_' + str(sec_epochs),
+#                       'activity_regularizer': 'sparse', 'regularizer_params': {'s_cost': s_cost, 's_target': s_target, 'start_epochs': 20},
+#                       'epochs': sec_epochs}
+#             full_pipeline(config)
+#
+# # L2 Cost
+# for c_act in [0.1, 0.01, 0.001, 0.0001]:
+#     for c_min in [0.5, 1.0, 1.5, 2.0]:
+#         # after 2 epochs of pre-training
+#         for epochs in [5, 20, 50]:
+#             config = {'model_name': 'mnist_l2_c_min_' + str(c_min) + '_c_act_' + str(c_act) + '_epochs_' + str(epochs), 'activity_regularizer': 'l2',
+#                       'regularizer_params': {'c_min': c_min, 'c_act': c_act, 'start_epochs': 2}, 'epochs': epochs}
+#             full_pipeline(config)
+#
+# # Dropout scheduler
+# for p_final in [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
+#     for e2 in [20, 50, 80]:
+#         config = {'model_name': 'mnist_dropout_scheduler_p_final_' + str(p_final) + '_e2_' + str(e2),
+#                                    'dropout_scheduler': {'p_final': p_final, 'extra_epochs': e2}, 'epochs' : 0}
+#        full_pipeline(config)
 
 #config = {'model_name': model_name, 'activity_regularizer': 'l2',
 #          'regularizer_params': {'c_min': 0.5, 'c_act': 0.1, 'start_epochs':2}, 'epochs': 20, 'hidden_units' :10}

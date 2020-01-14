@@ -49,13 +49,13 @@ def generate_snn_config(path_wd, model_name, simulator='INI'):
         'simulator': simulator,            # Chooses execution backend of SNN toolbox.
         'duration': 2000,                 # Number of time steps to run each sample.
         'num_to_test': 10000,               # How many test samples to run.
-        'batch_size': 200,                # Batch size for simulation.
+        'batch_size': 256,                # Batch size for simulation.
         'keras_backend': 'tensorflow'
     }
 
     config['output'] = {
-        # log all possible variables to the disk
-        'log_vars': {'all'},
+        # log desired variables to disk
+        'log_vars': {'synaptic_operations_b_t', 'neuron_operations_b_t'}, #{'spiketrains_n_b_l_t', 'synaptic_operations_b_t', 'neuron_operations_b_t'},
         # 'plot_vars': {                  # Various plots (slows down simulation).
         #     'spiketrains',              # Leave section empty to turn off plots.
         #     'spikerates',
@@ -63,6 +63,7 @@ def generate_snn_config(path_wd, model_name, simulator='INI'):
         #     'correlation',
         #     'v_mem',
         #     'error_t'}
+        'verbose': 0
     }
 
     if simulator is 'loihi':
@@ -83,7 +84,7 @@ def run_all_on_path(in_path, simulator='INI'):
     assert os.path.exists(os.path.join(in_path, 'x_norm.npz')), 'Could not find x_norm.npz on path'
     candidates = []
     for filename in os.listdir(in_path):
-        if filename.endswith(".h5") and 'parsed' not in filename:
+        if filename.endswith(".h5") and 'parsed' not in filename and simulator not in filename:
             candidates.append(filename)
 
     print('Found a total of {} candidates.'.format(len(candidates)))
@@ -111,7 +112,7 @@ if __name__ == '__main__':
     on_loihi = socket.gethostname() == 'ncl-mki96'
     if on_loihi:
         print('Running on loihi')
-        model_path = '/homes/klux/models'
+        model_path = '/homes/klux/models_new'
         run_all_on_path(model_path, 'loihi')
     else:
         print('Running on other machine, using INI')
