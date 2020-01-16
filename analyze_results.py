@@ -40,23 +40,42 @@ legend = []
 for k, v in color_dict.items():
     patch = mpatches.Patch(color=v, label=k)
     legend.append(patch)
-plt.figure()
+plt.figure(dpi=300)
 indices = list(range(len(df.loc[0]['accuracy'])))
 for i, row in df.iterrows():
     plt.plot(indices, row['accuracy'], color_dict[row['condition']])
 plt.legend(handles= legend)
 plt.title('Accuracy over time')
-plt.xlabel('Timestep')
+plt.xlabel('Latency')
 plt.ylabel('Accuracy')
-plt.show()
+plt.savefig('accuracy_over_time.png')
 
 # plot metrics against one another
-plt.figure()
+plt.figure(dpi=300)
 colors = np.array([colors.to_rgb(color_dict[x]) for x in df['condition']])
 plt.scatter(df['latency_till_max'], df['best_acc'], c=colors, s = df['computation_till_max'])
 plt.title('Accuracy, latency and total amount of computation')
 plt.xlabel('Latency')
 plt.ylabel('Accuracy')
 plt.legend(handles= legend)
-plt.show()
+plt.savefig('acc_latency_comp.png')
 
+
+# best indices
+def format_row(row):
+    model_name = row['model_name'].replace('_', ' ')
+    return ('{} & {} & {} & {} & {}\\\\'.format(row['condition'], model_name, round(row['best_acc'],3), round(row['computation_till_max'],3),
+                                                row['latency_till_max']))
+
+def format_frame(df):
+    lines = []
+    lines.append('\hline')
+    for i, row in df.iterrows():
+        lines.append(format_row(row))
+        lines.append('\hline')
+    return lines
+
+best = df.groupby('condition').idxmax()['best_acc']
+best_conds = df.loc[best]
+
+print('\n'.join(format_frame(best_conds)))
