@@ -5,7 +5,7 @@ import ast
 import matplotlib.patches as mpatches
 import matplotlib.colors as colors
 
-df = pd.read_csv('results.csv')
+df = pd.read_csv('results/results.csv')
 
 def infer_condition(row):
 
@@ -48,7 +48,7 @@ plt.legend(handles= legend)
 plt.title('Accuracy over time')
 plt.xlabel('Latency')
 plt.ylabel('Accuracy')
-plt.savefig('accuracy_over_time.png')
+plt.savefig('results/accuracy_over_time.png')
 
 # plot metrics against one another
 plt.figure(dpi=300)
@@ -58,7 +58,7 @@ plt.title('Accuracy, latency and total amount of computation')
 plt.xlabel('Latency')
 plt.ylabel('Accuracy')
 plt.legend(handles= legend)
-plt.savefig('acc_latency_comp.png')
+plt.savefig('results/acc_latency_comp.png')
 
 
 # best indices

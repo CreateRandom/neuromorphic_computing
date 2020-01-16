@@ -112,7 +112,7 @@ def run_all_on_path(in_path, simulator='INI'):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('model_path', type=str,
+    parser.add_argument('model_path',  nargs='?', type=str,
                         help='the path with the models to run', default=None)
 
     args = parser.parse_args()
