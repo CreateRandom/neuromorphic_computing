@@ -8,6 +8,7 @@ simulator.
 """
 
 import os
+import pickle
 import time
 
 import keras
@@ -71,7 +72,7 @@ def build_model(hidden_units=1200, dropout_rate=0.5, activity_regularizer=None):
 
 def train_model(model, epochs, callbacks=None):
     # Train model with backprop.
-    model.fit(x_train, y_train, batch_size=512, epochs=epochs, verbose=2,
+    history = model.fit(x_train, y_train, batch_size=512, epochs=epochs, verbose=2,
               validation_data=(x_test, y_test), callbacks=callbacks)
 
     # remove activity_regularizers before serializing
@@ -82,7 +83,12 @@ def train_model(model, epochs, callbacks=None):
             elif isinstance(layer.activity_regularizer, SparseCodingRegularizer):
                 layer.activity_regularizer = None
 
-    return model
+    return history
+
+def save_history(history, model_name):
+    model_path = os.path.join(path_wd, model_name + '.history')
+    with open(model_path, 'wb') as file_pi:
+        pickle.dump(history.history, file_pi)
 
 def save_model(model, model_name):
     model_path = os.path.join(path_wd, model_name + '.h5')
@@ -126,20 +132,24 @@ def full_pipeline(config=None):
         # override the total number of epochs
         total_epochs = scheduler_config['extra_epochs'] + scheduler.start_epochs
         callbacks.append(scheduler)
-    train_model(model, epochs=total_epochs, callbacks=callbacks)
+    history = train_model(model, epochs=total_epochs, callbacks=callbacks)
     model_name = config['model_name']
     model_path = save_model(model, model_name)
+    save_history(history, model_name)
 
     return model_path
 
 # Dropout
 # 6 models
+# 0, all missing
 for dropout in [0.0, 0.4, 0.5, 0.6, 0.7, 0.8]:
-    config = {'model_name': 'mnist_dropout_' + str(dropout), 'dropout': dropout, 'epochs': 1, 'hidden_units': 10}
+    config = {'model_name': 'mnist_dropout_' + str(dropout), 'dropout': dropout, 'epochs': 50}
     full_pipeline(config)
 
 # Sparse coding
 # 36 models
+# 28, 8 missing
+# 0.0001 --
 for s_cost in [0.1, 0.01, 0.001, 0.0001]:
     for s_target in [0.2, 0.05, 0.01]:
         # Unsure in paper, it says [5, 50, 50]
@@ -152,7 +162,7 @@ for s_cost in [0.1, 0.01, 0.001, 0.0001]:
 # L2 Cost
 # 48 models
 for c_act in [0.1, 0.01, 0.001, 0.0001]:
-    # split on this
+    # split on this, 0.5 and 1 to flutter
     for c_min in [0.5, 1.0, 1.5, 2.0]:
         # after 2 epochs of pre-training
         for epochs in [5, 20, 50]:
@@ -169,8 +179,24 @@ for p_final in [0.4, 0.5, 0.6, 0.7, 0.8, 0.9]:
        full_pipeline(config)
 
 
-# cheerilee: 64 --> 33 models, so put all the sparse models on there
-# fancypants: 64 --> 33 models, so put dropout_scheduler and dropout on there
-# fluttershy: 40 --> 21, so put half of l2
-# rarity: 40 --> 21, the other half of l2
+# cheerilee: 64 --> 33 models, so put all the sparse models (36) on there
+# fancypants: 64 --> 33 models, so put dropout_scheduler and dropout on there 24 + 9 from sparse
+# fluttershy: 40 --> 21, so put half of l2, 24 --> blossomforth
+# rarity: 40 --> 21, the other half of l2, 24 --> thunderlane
 
+# cheerilee is out
+# fancypants is out
+# fluttershy is out
+# rarity is out
+# pipsqueak is out
+# scootaloo is out
+
+# twist is available
+# featherweight is available
+# blossomforth / thunderlane
+
+
+# twist: 27 models, sparse except for 0.001 --> did not finish
+# featherweight: 9 sparse, 18 dropout_scheduler --> 27 --> finished
+# bf: 24 l2 --> finished
+# thunderlane: 24 l2 + 6 dropout --> 30 --> did not finish
