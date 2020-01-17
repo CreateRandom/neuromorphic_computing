@@ -27,6 +27,18 @@ df['computation'] = df['computation'].apply(lambda x: ast.literal_eval(x))
 df['best_acc'] = df['accuracy'].apply(lambda x: max(x))
 df['latency_till_max'] = df['accuracy'].apply(lambda x: np.argmax(x))
 
+def find_above_threshold(ary, threshold):
+    args = np.argwhere(np.array(ary) > threshold).tolist()
+    if args == []:
+        return -1
+    # return first case
+    else:
+        return int(args[0][0])
+
+df['latency_till_96'] = df['accuracy'].apply(lambda x: find_above_threshold(x, threshold=0.96))
+
+df['computation_till_96'] = df.apply(lambda x: x['computation'][x['latency_till_96']], axis=1)
+
 df['computation_till_max'] = df.apply(lambda x: x['computation'][x['latency_till_max']], axis=1)
 
 best_for_each_condition = df.groupby('condition').agg({'best_acc': 'max'})
@@ -46,7 +58,7 @@ for i, row in df.iterrows():
     plt.plot(indices, row['accuracy'], color_dict[row['condition']])
 plt.legend(handles= legend)
 plt.title('Accuracy over time')
-plt.xlabel('Latency')
+plt.xlabel('Timestep')
 plt.ylabel('Accuracy')
 plt.savefig('results/accuracy_over_time.png')
 
@@ -64,8 +76,13 @@ plt.savefig('results/acc_latency_comp.png')
 # best indices
 def format_row(row):
     model_name = row['model_name'].replace('_', ' ')
-    return ('{} & {} & {} & {} & {}\\\\'.format(row['condition'], model_name, round(row['best_acc'],3), round(row['computation_till_max'],3),
-                                                row['latency_till_max']))
+    if row['best_acc'] > 0.96:
+        return '{} & {} & {} & {} & {}\\\\'.format(row['condition'], model_name, round(row['best_acc'],3), round(row['computation_till_96'],3),
+                                                row['latency_till_96'])
+    else:
+
+        return '{} & {} & {} & {} & {}\\\\'.format(row['condition'], model_name, round(row['best_acc'],3), '-',
+                                                    '-')
 
 def format_frame(df):
     lines = []

@@ -17,8 +17,7 @@ from keras.layers import Flatten, Dense, Dropout
 from keras.optimizers import SGD
 from keras.initializers import RandomUniform
 
-from custom_loss import SparseCodingCallback, SparseCodingRegularizer
-from custom_regularizers import ModifiedL2Cost, ModifiedL2Callback
+from custom_regularizers import ModifiedL2Cost, ModifiedL2Callback, SparseCodingCallback, SparseCodingRegularizer
 from dropout_learning_schedule import DropoutScheduler
 from utils.data import load_mnist, save_data_for_toolbox
 from utils.saving import save_model_config
